@@ -1,0 +1,33 @@
+{
+  "name": "job-alert-system",
+  "version": "1.0.0",
+  "description": "UAE Job Alert & Resume Tailoring System",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsx src/index.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "latest",
+    "better-sqlite3": "latest",
+    "dotenv": "latest",
+    "marked": "^4.3.0",
+    "node-cron": "latest",
+    "node-telegram-bot-api": "latest",
+    "nodemailer": "latest",
+    "playwright": "latest",
+    "puppeteer": "latest",
+    "rss-parser": "latest"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "latest",
+    "@types/node": "latest",
+    "@types/node-cron": "latest",
+    "@types/node-telegram-bot-api": "latest",
+    "@types/nodemailer": "latest",
+    "tsx": "latest",
+    "typescript": "latest"
+  }
+}

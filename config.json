@@ -1,0 +1,36 @@
+{
+  "keywords": [
+    "software engineer",
+    "backend engineer",
+    "backend developer",
+    "full stack developer",
+    "full stack engineer",
+    "fullstack developer",
+    "fullstack engineer",
+    "node.js developer",
+    "software developer"
+  ],
+  "seniority": {
+    "min_years": 2,
+    "max_years": 10
+  },
+  "job_types": ["full-time", "contract"],
+  "location": "UAE",
+  "poll_interval_minutes": 30,
+  "ai": {
+    "max_calls_per_day": 20,
+    "max_tokens": 3000
+  },
+  "notifications": {
+    "telegram": {
+      "chat_id": "6905523641"
+    },
+    "email": {
+      "smtp_host": "smtp.gmail.com",
+      "smtp_port": 587,
+      "from": "waizadeeb@gmail.com",
+      "to": "waizadeeb@gmail.com"
+    }
+  },
+  "resume_path": "./resume.md"
+}

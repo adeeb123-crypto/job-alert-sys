@@ -1,0 +1,14 @@
+node_modules/
+dist/
+
+# Secrets — never commit
+.env
+
+# SQLite dedup database (persisted via fly.io volume in production)
+data/dedup.db
+
+# Temporary PDF files generated during processing
+tmp/
+*.pdf
+.vercel
+.env*.local
