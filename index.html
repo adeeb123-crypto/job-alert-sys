@@ -1,0 +1,1030 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JobAlert UAE — Be first. Every time.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --cream: #fafaf8;
+  --cream-2: #f3ede4;
+  --gold: #c9a96e;
+  --gold-pale: #f0e6d3;
+  --gold-dark: #a07840;
+  --ink: #1a1a1a;
+  --ink-mid: #4a4540;
+  --ink-light: #8a837a;
+  --rule: #e2dbd2;
+  --white: #ffffff;
+  --tg-blue: #229ED9;
+  --green: #22c55e;
+}
+
+html { scroll-behavior: smooth; font-size: 16px; }
+
+body {
+  font-family: 'DM Sans', system-ui, sans-serif;
+  background: var(--cream);
+  color: var(--ink);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Grain texture */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.028;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ── TYPOGRAPHY ── */
+.serif-display { font-family: 'Cormorant Garamond', Georgia, serif; }
+h2, h3 { font-family: 'Playfair Display', Georgia, serif; }
+.eyebrow {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+
+/* ── ANIMATIONS ── */
+@keyframes float {
+  0%, 100% { transform: translateY(0) rotate(-2deg); }
+  50%       { transform: translateY(-14px) rotate(-2deg); }
+}
+@keyframes float-slow {
+  0%, 100% { transform: translateY(0) rotate(1deg); }
+  50%       { transform: translateY(-8px) rotate(1deg); }
+}
+@keyframes fadeUpIn {
+  from { opacity: 0; transform: translateY(32px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; } to { opacity: 1; }
+}
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position:  200% center; }
+}
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.4; transform: scale(0.75); }
+}
+
+nav        { animation: slideDown  0.6s cubic-bezier(0.16,1,0.3,1) 0.1s both; }
+.hero-left  { animation: fadeUpIn  0.9s cubic-bezier(0.16,1,0.3,1) 0.25s both; }
+.hero-right { animation: fadeIn    1.1s cubic-bezier(0.16,1,0.3,1) 0.45s both; }
+
+/* Scroll reveals */
+.reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 0.75s cubic-bezier(0.16,1,0.3,1),
+              transform 0.75s cubic-bezier(0.16,1,0.3,1);
+}
+.reveal.visible  { opacity: 1; transform: translateY(0); }
+.reveal-d1 { transition-delay: 0.1s; }
+.reveal-d2 { transition-delay: 0.2s; }
+.reveal-d3 { transition-delay: 0.3s; }
+.reveal-d4 { transition-delay: 0.4s; }
+
+/* ── NAV ── */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  padding: 22px 56px;
+  display: flex; align-items: center; justify-content: space-between;
+  transition: background 0.35s, box-shadow 0.35s, padding 0.35s;
+}
+nav.scrolled {
+  background: rgba(250,250,248,0.93);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  box-shadow: 0 1px 0 var(--rule);
+  padding: 14px 56px;
+}
+.nav-logo {
+  font-size: 13px; font-weight: 600; letter-spacing: 2.5px;
+  text-transform: uppercase; color: var(--ink); text-decoration: none;
+}
+.nav-logo span { color: var(--gold); }
+.nav-links { display: flex; align-items: center; gap: 36px; list-style: none; }
+.nav-links a {
+  font-size: 11px; font-weight: 400; letter-spacing: 1.2px;
+  text-transform: uppercase; color: var(--ink-light); text-decoration: none;
+  transition: color 0.2s;
+}
+.nav-links a:hover { color: var(--ink); }
+.btn-nav {
+  font-size: 11px; font-weight: 600; letter-spacing: 1.5px;
+  text-transform: uppercase; padding: 10px 22px;
+  background: var(--ink); color: var(--cream);
+  border: none; cursor: pointer; text-decoration: none;
+  transition: background 0.2s, color 0.2s;
+}
+.btn-nav:hover { background: var(--gold); color: var(--ink); }
+
+/* ── HERO ── */
+.hero {
+  min-height: 100vh;
+  padding: 130px 56px 90px;
+  display: grid; grid-template-columns: 55fr 45fr;
+  align-items: center; gap: 64px;
+  position: relative; overflow: hidden;
+}
+.hero::before {
+  content: '';
+  position: absolute; inset: 0; pointer-events: none;
+  background:
+    radial-gradient(ellipse 55% 55% at 75% 55%, rgba(201,169,110,0.09) 0%, transparent 70%),
+    radial-gradient(ellipse 35% 50% at 15% 25%, rgba(201,169,110,0.05) 0%, transparent 60%);
+}
+
+.hero-left { max-width: 580px; }
+
+.hero-eyebrow {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 28px;
+}
+.live-dot {
+  width: 7px; height: 7px; background: var(--green); border-radius: 50%;
+  animation: pulse-dot 1.8s ease-in-out infinite; flex-shrink: 0;
+}
+.hero-h1 {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: clamp(52px, 5.8vw, 86px);
+  font-weight: 600; line-height: 1.06;
+  color: var(--ink); margin-bottom: 26px; letter-spacing: -0.5px;
+}
+.hero-h1 em {
+  font-style: italic;
+  background: linear-gradient(90deg, #c9a96e 0%, #e8c87a 50%, #c9a96e 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: shimmer 3.5s linear infinite;
+}
+.hero-sub {
+  font-size: 17px; line-height: 1.75; color: var(--ink-mid);
+  margin-bottom: 40px; max-width: 450px; font-weight: 300;
+}
+.hero-cta { display: flex; align-items: center; gap: 22px; margin-bottom: 52px; }
+
+.btn-primary {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: 13px; font-weight: 500; letter-spacing: 0.3px;
+  padding: 15px 30px; background: var(--ink); color: var(--cream);
+  border: none; cursor: pointer; text-decoration: none;
+  position: relative; overflow: hidden; transition: color 0.3s;
+}
+.btn-primary::after {
+  content: ''; position: absolute; inset: 0;
+  background: var(--gold); transform: scaleX(0); transform-origin: left;
+  transition: transform 0.35s cubic-bezier(0.16,1,0.3,1);
+}
+.btn-primary:hover::after { transform: scaleX(1); }
+.btn-primary:hover { color: var(--ink); }
+.btn-primary span { position: relative; z-index: 1; }
+
+.btn-ghost {
+  font-size: 13px; font-weight: 400; color: var(--ink-mid);
+  background: none; border: none; cursor: pointer; text-decoration: none;
+  display: flex; align-items: center; gap: 6px;
+  transition: color 0.2s, gap 0.25s;
+}
+.btn-ghost:hover { color: var(--gold); gap: 11px; }
+
+.portal-strip { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.portal-label { font-size: 11px; color: var(--ink-light); letter-spacing: 1px; text-transform: uppercase; }
+.portal-tag {
+  font-size: 11px; font-weight: 500; padding: 3px 10px;
+  border: 1px solid var(--rule); color: var(--ink-mid); background: var(--white);
+  border-radius: 2px; letter-spacing: 0.3px;
+}
+
+/* ── HERO RIGHT ── */
+.hero-right {
+  position: relative; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 48px 24px; border-radius: 20px; overflow: hidden;
+  min-height: 520px;
+}
+.dubai-bg {
+  position: absolute; inset: 0; border-radius: 20px; overflow: hidden;
+}
+.dubai-bg img {
+  width: 100%; height: 100%; object-fit: cover;
+  opacity: 0.11; filter: sepia(25%) saturate(0.85);
+}
+.dubai-bg::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(to bottom,
+    var(--cream) 0%, transparent 25%,
+    transparent 70%, var(--cream) 100%);
+}
+
+.notif-wrapper {
+  position: relative; z-index: 2;
+  display: flex; flex-direction: column; align-items: center;
+  gap: 14px; width: 100%; max-width: 340px;
+}
+
+.monitor-bar {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 11px; color: var(--ink-light);
+  background: var(--white); border: 1px solid var(--rule);
+  border-radius: 8px; padding: 8px 14px;
+  box-shadow: 0 2px 8px rgba(26,26,26,0.06);
+}
+.monitor-dot {
+  width: 6px; height: 6px; background: var(--green);
+  border-radius: 50%; animation: pulse-dot 1.8s ease-in-out infinite; flex-shrink: 0;
+}
+
+.notif-card {
+  width: 100%; background: var(--white);
+  border: 1px solid var(--rule); border-radius: 16px;
+  padding: 20px; animation: float 7s ease-in-out infinite;
+  box-shadow:
+    0 4px 6px rgba(26,26,26,0.04),
+    0 14px 36px rgba(26,26,26,0.11),
+    inset 0 1px 0 rgba(255,255,255,0.9);
+}
+
+.notif-header {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 14px; padding-bottom: 12px;
+  border-bottom: 1px solid var(--rule);
+}
+.tg-avatar {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: var(--tg-blue); display: flex; align-items: center;
+  justify-content: center; flex-shrink: 0;
+}
+.tg-avatar svg { width: 16px; height: 16px; fill: white; }
+.notif-meta { flex: 1; }
+.notif-bot-name { font-size: 13px; font-weight: 600; color: var(--ink); line-height: 1; margin-bottom: 2px; }
+.notif-time { font-size: 10px; color: var(--ink-light); }
+.notif-badge {
+  font-size: 10px; font-weight: 600; color: var(--green);
+  background: #f0fdf4; padding: 3px 8px;
+  border-radius: 20px; border: 1px solid #bbf7d0;
+}
+
+.notif-body { min-height: 128px; }
+#notif-body { transition: opacity 0.35s ease, transform 0.35s ease; }
+
+.job-alert-line { font-size: 12.5px; line-height: 1.75; color: var(--ink-mid); }
+.job-alert-line .lbl { font-weight: 600; color: var(--ink); }
+.job-title-line { font-size: 14px; font-weight: 700; color: var(--ink); margin: 6px 0 2px; }
+.skills-line { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 10px; }
+.skill-pill {
+  font-size: 10px; padding: 2px 9px;
+  background: var(--gold-pale); color: var(--gold-dark);
+  border-radius: 20px; font-weight: 500;
+}
+.pdf-bar {
+  margin-top: 12px; display: flex; align-items: center; gap: 10px;
+  background: #f0fdf4; border: 1px solid #bbf7d0;
+  border-radius: 8px; padding: 9px 12px;
+}
+.pdf-info { flex: 1; }
+.pdf-name { font-size: 11px; font-weight: 600; color: var(--ink); display: block; }
+.pdf-sub  { font-size: 10px; color: var(--green); }
+
+.notif-card-secondary {
+  width: 88%; background: var(--white); border: 1px solid var(--rule);
+  border-radius: 12px; padding: 12px 16px;
+  display: flex; align-items: center; gap: 10px;
+  box-shadow: 0 2px 12px rgba(26,26,26,0.05);
+  animation: float-slow 8s ease-in-out infinite; opacity: 0.82;
+}
+.email-icon {
+  width: 30px; height: 30px; background: var(--gold-pale);
+  border-radius: 8px; display: flex; align-items: center;
+  justify-content: center; font-size: 14px; flex-shrink: 0;
+}
+.secondary-title { font-size: 11px; font-weight: 600; color: var(--ink); }
+.secondary-sub   { font-size: 10px; color: var(--ink-light); }
+
+/* ── GOLD RULE ── */
+.gold-rule {
+  width: 100%; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+}
+
+/* ── STATS ── */
+.stats {
+  padding: 60px 56px;
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule);
+}
+.stat-item {
+  text-align: center; padding: 16px 24px;
+  border-right: 1px solid var(--rule);
+}
+.stat-item:last-child { border-right: none; }
+.stat-number {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 68px; font-weight: 600; color: var(--ink);
+  line-height: 1; margin-bottom: 10px; letter-spacing: -2px;
+}
+.stat-unit { font-size: 36px; color: var(--gold); }
+.stat-label { font-size: 11px; font-weight: 400; letter-spacing: 2px; text-transform: uppercase; color: var(--ink-light); }
+
+/* ── SECTIONS ── */
+.section { padding: 100px 56px; }
+
+.section-header {
+  display: flex; align-items: flex-start; gap: 24px; margin-bottom: 68px;
+}
+.section-number {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 90px; font-weight: 300; color: var(--gold-pale);
+  line-height: 0.9; letter-spacing: -4px; user-select: none;
+  flex-shrink: 0; padding-top: 4px;
+}
+.section-title {
+  font-size: 40px; font-weight: 700; color: var(--ink); line-height: 1.15; margin-bottom: 8px;
+}
+.section-sub { font-size: 16px; color: var(--ink-light); font-weight: 300; }
+
+/* ── HOW IT WORKS ── */
+.steps { display: grid; grid-template-columns: repeat(4, 1fr); }
+.step {
+  padding: 36px 36px 36px 0;
+  border-right: 1px solid var(--rule); position: relative;
+}
+.step:last-child { border-right: none; padding-right: 0; }
+.step:not(:first-child) { padding-left: 36px; }
+.step-num {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 48px; font-weight: 300; color: var(--gold);
+  line-height: 1; margin-bottom: 16px; opacity: 0.55;
+}
+.step-icon { font-size: 26px; margin-bottom: 14px; display: block; }
+.step-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 18px; font-weight: 600; color: var(--ink); margin-bottom: 10px;
+}
+.step-desc { font-size: 14px; line-height: 1.75; color: var(--ink-light); font-weight: 300; }
+
+/* ── FEATURES ── */
+.features-section { background: var(--cream-2); border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); }
+.features-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 1px; background: var(--rule);
+  border: 1px solid var(--rule);
+}
+.feature-card {
+  background: var(--cream-2); padding: 40px 36px;
+  transition: background 0.25s, transform 0.25s;
+}
+.feature-card:hover { background: var(--white); }
+.feature-icon { font-size: 28px; display: block; margin-bottom: 18px; }
+.feature-title { font-family: 'Playfair Display', serif; font-size: 19px; font-weight: 600; color: var(--ink); margin-bottom: 12px; }
+.feature-desc { font-size: 14px; line-height: 1.75; color: var(--ink-light); font-weight: 300; }
+
+/* ── PORTALS ── */
+.portals-section { background: var(--white); }
+.portals-grid { display: flex; gap: 14px; flex-wrap: wrap; }
+.portal-card {
+  display: flex; align-items: center; gap: 12px;
+  padding: 18px 26px; background: var(--cream);
+  border: 1px solid var(--rule); border-radius: 4px;
+  transition: border-color 0.25s, box-shadow 0.25s; flex: 1; min-width: 160px;
+}
+.portal-card:hover {
+  border-color: var(--gold);
+  box-shadow: 0 4px 18px rgba(201,169,110,0.15);
+}
+.portal-status { width: 7px; height: 7px; background: var(--green); border-radius: 50%; flex-shrink: 0; }
+.portal-name { font-size: 14px; font-weight: 500; color: var(--ink); }
+.portal-method { font-size: 11px; color: var(--ink-light); }
+
+/* ── CTA ── */
+.cta-section {
+  background: var(--ink); padding: 110px 56px;
+  text-align: center; position: relative; overflow: hidden;
+}
+.cta-section::before {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(ellipse 70% 70% at 50% 50%, rgba(201,169,110,0.10) 0%, transparent 70%);
+}
+.cta-eyebrow { font-size: 11px; font-weight: 500; letter-spacing: 3px; text-transform: uppercase; color: var(--gold); margin-bottom: 22px; }
+.cta-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(44px, 5vw, 70px); font-weight: 600;
+  color: var(--cream); line-height: 1.08; margin-bottom: 18px;
+}
+.cta-title em { font-style: italic; color: var(--gold); }
+.cta-sub { font-size: 16px; color: rgba(250,250,248,0.5); font-weight: 300; margin-bottom: 28px; }
+.waitlist-social {
+  display: flex; align-items: center; justify-content: center;
+  gap: 14px; margin-bottom: 32px;
+}
+.avatar-stack {
+  display: flex; align-items: center;
+}
+.avatar-stack img {
+  width: 34px; height: 34px; border-radius: 50%;
+  border: 2px solid rgba(26,26,26,0.9);
+  object-fit: cover; margin-left: -10px;
+  filter: blur(1px) brightness(0.95);
+  transition: filter 0.3s;
+}
+.avatar-stack img:first-child { margin-left: 0; }
+.avatar-stack:hover img { filter: blur(1.5px) brightness(0.9); }
+.waitlist-count {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 13px; color: rgba(250,250,248,0.42); font-weight: 300;
+  letter-spacing: 0.2px;
+}
+.waitlist-count strong { color: var(--gold); font-weight: 600; font-size: 14px; }
+.form-success {
+  display: none; flex-direction: column; align-items: center; gap: 10px;
+  padding: 20px;
+}
+.form-success-icon { font-size: 36px; }
+.form-success-title {
+  font-family: 'Playfair Display', serif; font-size: 22px;
+  color: var(--cream); font-weight: 600;
+}
+.form-success-sub { font-size: 14px; color: rgba(250,250,248,0.45); font-weight: 300; }
+.cta-form {
+  display: flex; gap: 12px; justify-content: center;
+  max-width: 440px; margin: 0 auto;
+}
+.cta-input {
+  flex: 1; padding: 15px 18px;
+  background: rgba(250,250,248,0.07); border: 1px solid rgba(250,250,248,0.18);
+  color: var(--cream); font-family: 'DM Sans', sans-serif; font-size: 14px;
+  outline: none; transition: border 0.2s;
+}
+.cta-input::placeholder { color: rgba(250,250,248,0.32); }
+.cta-input:focus { border-color: var(--gold); }
+.btn-cta {
+  font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600;
+  letter-spacing: 0.5px; padding: 15px 28px; background: var(--gold);
+  color: var(--ink); border: none; cursor: pointer; white-space: nowrap;
+  transition: background 0.2s;
+}
+.btn-cta:hover { background: var(--gold-dark); color: var(--cream); }
+
+/* ── FOOTER ── */
+footer {
+  padding: 32px 56px; border-top: 1px solid var(--rule);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.footer-logo {
+  font-size: 12px; font-weight: 600; letter-spacing: 2px;
+  text-transform: uppercase; color: var(--ink-light); text-decoration: none;
+}
+.footer-logo span { color: var(--gold); }
+.footer-copy { font-size: 12px; color: var(--ink-light); }
+.footer-links { display: flex; gap: 24px; }
+.footer-links a {
+  font-size: 11px; letter-spacing: 1px; text-transform: uppercase;
+  color: var(--ink-light); text-decoration: none; transition: color 0.2s;
+}
+.footer-links a:hover { color: var(--gold); }
+
+/* ── HAMBURGER ── */
+.hamburger {
+  display: none; flex-direction: column; justify-content: center;
+  gap: 5px; width: 36px; height: 36px; cursor: pointer;
+  background: none; border: none; padding: 4px;
+}
+.hamburger span {
+  display: block; height: 1.5px; background: var(--ink);
+  transition: transform 0.3s, opacity 0.3s;
+  transform-origin: center;
+}
+.hamburger.open span:nth-child(1) { transform: translateY(6.5px) rotate(45deg); }
+.hamburger.open span:nth-child(2) { opacity: 0; transform: scaleX(0); }
+.hamburger.open span:nth-child(3) { transform: translateY(-6.5px) rotate(-45deg); }
+
+.mobile-menu {
+  display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(250,250,248,0.97); backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px); z-index: 99;
+  flex-direction: column; align-items: center; justify-content: center;
+  gap: 36px;
+}
+.mobile-menu.open { display: flex; }
+.mobile-menu a {
+  font-size: 28px; font-family: 'Playfair Display', serif; font-weight: 600;
+  color: var(--ink); text-decoration: none; letter-spacing: 0.5px;
+  transition: color 0.2s;
+}
+.mobile-menu a:hover { color: var(--gold); }
+.mobile-menu .mobile-cta {
+  font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600;
+  letter-spacing: 1.5px; text-transform: uppercase;
+  padding: 14px 32px; background: var(--ink); color: var(--cream);
+  border-radius: 0; margin-top: 8px;
+}
+.mobile-menu .mobile-cta:hover { background: var(--gold); color: var(--ink); }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 960px) {
+  nav, nav.scrolled { padding-left: 24px; padding-right: 24px; }
+  .nav-links { display: none; }
+  .hamburger { display: flex; }
+  .hero { grid-template-columns: 1fr; padding: 100px 24px 60px; gap: 36px; }
+  .hero-right { min-height: 0; padding: 24px 16px; }
+  .notif-wrapper { max-width: 100%; }
+  .notif-card { padding: 16px; }
+  .notif-card-secondary { width: 100%; }
+  .stats { padding: 40px 24px; }
+  .stat-number { font-size: 52px; }
+  .section { padding: 72px 24px; }
+  .section-number { font-size: 64px; }
+  .section-title { font-size: 32px; }
+  .steps { grid-template-columns: 1fr 1fr; gap: 0; }
+  .step { border-right: none; border-bottom: 1px solid var(--rule); padding: 28px 0 !important; }
+  .step:nth-child(odd) { padding-right: 20px !important; }
+  .step:nth-child(even) { padding-left: 20px !important; border-left: 1px solid var(--rule); }
+  .step:nth-last-child(-n+2) { border-bottom: none; }
+  .features-grid { grid-template-columns: 1fr; }
+  .cta-section { padding: 70px 24px; }
+  .cta-form { flex-direction: column; }
+  footer { flex-direction: column; gap: 16px; text-align: center; }
+}
+</style>
+</head>
+<body>
+
+<!-- MOBILE MENU OVERLAY -->
+<div class="mobile-menu" id="mobile-menu">
+  <a href="#how-it-works" onclick="closeMenu()">How it works</a>
+  <a href="#features" onclick="closeMenu()">Features</a>
+  <a href="#portals" onclick="closeMenu()">Portals</a>
+  <a href="#waitlist" class="mobile-cta" onclick="closeMenu()">Request Access</a>
+</div>
+
+<!-- NAV -->
+<nav id="nav">
+  <a href="#" class="nav-logo">JobAlert <span>UAE</span></a>
+  <ul class="nav-links">
+    <li><a href="#how-it-works">How it works</a></li>
+    <li><a href="#features">Features</a></li>
+    <li><a href="#portals">Portals</a></li>
+  </ul>
+  <div style="display:flex;align-items:center;gap:12px;">
+    <a href="#waitlist" class="btn-nav">Request Access</a>
+    <button class="hamburger" id="hamburger" onclick="toggleMenu()" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-left">
+    <div class="hero-eyebrow">
+      <div class="live-dot"></div>
+      <span class="eyebrow">Live · Monitoring UAE job portals</span>
+    </div>
+    <h1 class="hero-h1">
+      Be among the<br>
+      <em>first 10</em><br>
+      applicants.
+    </h1>
+    <p class="hero-sub">
+      The UAE job market fills within minutes. JobAlert monitors LinkedIn, Bayt, Indeed and more every 5 minutes — tailoring your resume with AI and delivering it to your phone before most candidates even open their laptop.
+    </p>
+    <div class="hero-cta">
+      <a href="#waitlist" class="btn-primary"><span>Request Access →</span></a>
+      <a href="#how-it-works" class="btn-ghost">See how it works <span>↓</span></a>
+    </div>
+    <div class="portal-strip">
+      <span class="portal-label">Monitoring:</span>
+      <span class="portal-tag">LinkedIn</span>
+      <span class="portal-tag">Bayt</span>
+      <span class="portal-tag">Indeed</span>
+      <span class="portal-tag">NaukriGulf</span>
+      <span class="portal-tag">GulfTalent</span>
+    </div>
+  </div>
+
+  <div class="hero-right">
+    <div class="dubai-bg">
+      <img src="https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=1200&q=80" alt="Dubai skyline" loading="lazy">
+    </div>
+    <div class="notif-wrapper">
+      <div class="monitor-bar">
+        <div class="monitor-dot"></div>
+        <span>Actively monitoring · Next scan in <strong id="countdown">4:47</strong></span>
+      </div>
+
+      <div class="notif-card">
+        <div class="notif-header">
+          <div class="tg-avatar">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.248l-1.97 9.28c-.144.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12L7.13 13.954l-2.967-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.693.632z"/>
+            </svg>
+          </div>
+          <div class="notif-meta">
+            <div class="notif-bot-name">JobAlert Bot</div>
+            <div class="notif-time" id="notif-time">just now</div>
+          </div>
+          <div class="notif-badge">● New</div>
+        </div>
+        <div class="notif-body">
+          <div id="notif-body"></div>
+        </div>
+        <div class="pdf-bar">
+          <span style="font-size:18px;">📄</span>
+          <div class="pdf-info">
+            <span class="pdf-name" id="pdf-name">Resume_Senior_Backend_Noon.pdf</span>
+            <span class="pdf-sub">AI-tailored · Ready to send</span>
+          </div>
+          <span style="color:var(--green);font-size:18px;">✓</span>
+        </div>
+      </div>
+
+      <div class="notif-card-secondary">
+        <div class="email-icon">📧</div>
+        <div style="flex:1;">
+          <div class="secondary-title">Email alert sent</div>
+          <div class="secondary-sub">Full JD + tailored PDF in your inbox</div>
+        </div>
+        <span style="color:var(--green);font-size:16px;">✓</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STATS -->
+<div class="gold-rule"></div>
+<section class="stats">
+  <div class="stat-item reveal">
+    <div class="stat-number">5<span class="stat-unit">min</span></div>
+    <div class="stat-label">Poll interval</div>
+  </div>
+  <div class="stat-item reveal reveal-d1">
+    <div class="stat-number">5</div>
+    <div class="stat-label">Portals monitored</div>
+  </div>
+  <div class="stat-item reveal reveal-d2">
+    <div class="stat-number">Top <span style="color:var(--gold)">10</span></div>
+    <div class="stat-label">Applicants — every time</div>
+  </div>
+</section>
+<div class="gold-rule"></div>
+
+<!-- HOW IT WORKS -->
+<section class="section" id="how-it-works">
+  <div class="section-header reveal">
+    <div class="section-number">01</div>
+    <div>
+      <h2 class="section-title">How it works</h2>
+      <p class="section-sub">Four steps. Fully automated. You just apply.</p>
+    </div>
+  </div>
+  <div class="steps">
+    <div class="step reveal">
+      <div class="step-num">01</div>
+      <span class="step-icon">🔍</span>
+      <div class="step-title">Scan</div>
+      <p class="step-desc">Monitors LinkedIn, Bayt, Indeed, NaukriGulf and GulfTalent every 5 minutes around the clock. No manual browsing, no missed postings.</p>
+    </div>
+    <div class="step reveal reveal-d1">
+      <div class="step-num">02</div>
+      <span class="step-icon">⚡</span>
+      <div class="step-title">Filter</div>
+      <p class="step-desc">Matches your keywords, seniority level and location preferences. Deduplicates across all portals so you never see the same role twice.</p>
+    </div>
+    <div class="step reveal reveal-d2">
+      <div class="step-num">03</div>
+      <span class="step-icon">🤖</span>
+      <div class="step-title">Tailor</div>
+      <p class="step-desc">Claude AI rewrites your resume to mirror each job description — emphasising the right skills and experience for that specific role. No fabrication, ever.</p>
+    </div>
+    <div class="step reveal reveal-d3">
+      <div class="step-num">04</div>
+      <span class="step-icon">📲</span>
+      <div class="step-title">Alert</div>
+      <p class="step-desc">Telegram push with the tailored PDF attached. Simultaneously a full HTML email with the complete JD. You apply. You're in the first wave.</p>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="section features-section" id="features">
+  <div class="section-header reveal">
+    <div class="section-number">02</div>
+    <div>
+      <h2 class="section-title">Everything you need</h2>
+      <p class="section-sub">Built for a hyper-competitive market. No fluff.</p>
+    </div>
+  </div>
+  <div class="features-grid">
+    <div class="feature-card reveal">
+      <span class="feature-icon">⚡</span>
+      <div class="feature-title">5-Minute Polling</div>
+      <p class="feature-desc">Checks every portal every 5 minutes, 24/7. The average UAE job post gets 200+ applications in the first hour — you'll be in the first wave, every time.</p>
+    </div>
+    <div class="feature-card reveal reveal-d1">
+      <span class="feature-icon">🤖</span>
+      <div class="feature-title">AI Resume Tailoring</div>
+      <p class="feature-desc">Claude AI rewrites your resume for each role — reordering bullets, adjusting your summary, emphasising the exact skills the employer asked for.</p>
+    </div>
+    <div class="feature-card reveal reveal-d2">
+      <span class="feature-icon">📄</span>
+      <div class="feature-title">Instant PDF Delivery</div>
+      <p class="feature-desc">The tailored resume renders to a clean, professional PDF and attaches to both your Telegram message and email — ready to forward in seconds.</p>
+    </div>
+    <div class="feature-card reveal">
+      <span class="feature-icon">🔔</span>
+      <div class="feature-title">Telegram + Email</div>
+      <p class="feature-desc">Instant Telegram push with the job details and your PDF. Simultaneously, a full HTML email with the complete job description for reference.</p>
+    </div>
+    <div class="feature-card reveal reveal-d1">
+      <span class="feature-icon">🧠</span>
+      <div class="feature-title">Smart Deduplication</div>
+      <p class="feature-desc">SHA-256 fingerprinting across all portals ensures you're never notified for the same role twice, even when it appears on multiple platforms.</p>
+    </div>
+    <div class="feature-card reveal reveal-d2">
+      <span class="feature-icon">⚙️</span>
+      <div class="feature-title">Fully Configurable</div>
+      <p class="feature-desc">Set keywords, seniority range, job types and location in a simple config file. Tune your alerts without touching a single line of code.</p>
+    </div>
+  </div>
+</section>
+
+<!-- PORTALS -->
+<section class="section portals-section" id="portals">
+  <div class="section-header reveal">
+    <div class="section-number">03</div>
+    <div>
+      <h2 class="section-title">Portals monitored</h2>
+      <p class="section-sub">Every major UAE job platform. Watched simultaneously.</p>
+    </div>
+  </div>
+  <div class="portals-grid reveal">
+    <div class="portal-card">
+      <div class="portal-status"></div>
+      <div>
+        <div class="portal-name">LinkedIn</div>
+        <div class="portal-method">RSS polling</div>
+      </div>
+    </div>
+    <div class="portal-card">
+      <div class="portal-status"></div>
+      <div>
+        <div class="portal-name">Indeed</div>
+        <div class="portal-method">RSS polling</div>
+      </div>
+    </div>
+    <div class="portal-card">
+      <div class="portal-status"></div>
+      <div>
+        <div class="portal-name">Bayt.com</div>
+        <div class="portal-method">Browser scraping</div>
+      </div>
+    </div>
+    <div class="portal-card">
+      <div class="portal-status"></div>
+      <div>
+        <div class="portal-name">NaukriGulf</div>
+        <div class="portal-method">Browser scraping</div>
+      </div>
+    </div>
+    <div class="portal-card">
+      <div class="portal-status"></div>
+      <div>
+        <div class="portal-name">GulfTalent</div>
+        <div class="portal-method">Browser scraping</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA / WAITLIST -->
+<section class="cta-section" id="waitlist">
+  <p class="cta-eyebrow reveal">Personal tool · Limited access</p>
+  <h2 class="cta-title serif-display reveal reveal-d1">
+    The market moves in<br><em>minutes.</em> You should too.
+  </h2>
+  <p class="cta-sub reveal reveal-d2">Request early access. Be the first to know when a slot opens.</p>
+  <div class="waitlist-social reveal reveal-d2">
+    <div class="avatar-stack">
+      <img src="https://i.pravatar.cc/48?img=3"  alt="" loading="lazy">
+      <img src="https://i.pravatar.cc/48?img=11" alt="" loading="lazy">
+      <img src="https://i.pravatar.cc/48?img=22" alt="" loading="lazy">
+      <img src="https://i.pravatar.cc/48?img=35" alt="" loading="lazy">
+      <img src="https://i.pravatar.cc/48?img=47" alt="" loading="lazy">
+    </div>
+    <p class="waitlist-count">
+      <strong id="wl-number">—</strong> engineers already waiting
+    </p>
+  </div>
+  <div id="cta-form-wrap" class="reveal reveal-d3">
+    <form class="cta-form"
+          action="https://formspree.io/f/YOUR_FORMSPREE_ID"
+          method="POST"
+          onsubmit="handleWaitlist(event)">
+      <input type="email" name="email" class="cta-input" placeholder="your@email.com" required>
+      <input type="hidden" name="_subject" value="New JobAlert UAE waitlist signup">
+      <button type="submit" class="btn-cta" id="cta-btn">Join Waitlist</button>
+    </form>
+    <div class="form-success" id="form-success">
+      <div class="form-success-icon">✦</div>
+      <div class="form-success-title">You're on the list.</div>
+      <div class="form-success-sub">We'll reach out as soon as a slot opens.</div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <a href="#" class="footer-logo">JobAlert <span>UAE</span></a>
+  <p class="footer-copy">Built with Claude AI · UAE Job Market</p>
+  <div class="footer-links">
+    <a href="#how-it-works">How it works</a>
+    <a href="#features">Features</a>
+    <a href="#portals">Portals</a>
+  </div>
+</footer>
+
+<script>
+// ── JOB ROTATION ──
+const jobs = [
+  {
+    title: 'Senior Backend Developer',
+    company: 'Noon',
+    location: 'Dubai',
+    type: 'Full-time',
+    portal: 'LinkedIn',
+    skills: ['Node.js', 'TypeScript', 'AWS'],
+    seniority: '5+ years',
+    time: 'just now'
+  },
+  {
+    title: 'Full Stack Engineer',
+    company: 'Careem',
+    location: 'Abu Dhabi',
+    type: 'Full-time',
+    portal: 'Bayt',
+    skills: ['React', 'Node.js', 'PostgreSQL'],
+    seniority: '3–5 years',
+    time: '3 min ago'
+  },
+  {
+    title: 'Node.js Developer',
+    company: 'Property Finder',
+    location: 'Dubai',
+    type: 'Contract',
+    portal: 'Indeed',
+    skills: ['Node.js', 'REST APIs', 'Redis'],
+    seniority: '2–4 years',
+    time: '8 min ago'
+  },
+  {
+    title: 'Software Engineer, Backend',
+    company: 'Talabat',
+    location: 'Dubai, UAE',
+    type: 'Full-time',
+    portal: 'LinkedIn',
+    skills: ['Go', 'Kubernetes', 'gRPC'],
+    seniority: '3+ years',
+    time: '11 min ago'
+  }
+];
+
+let jobIndex = 0;
+
+function renderJob(job) {
+  const body = document.getElementById('notif-body');
+  const pdfName = document.getElementById('pdf-name');
+  const notifTime = document.getElementById('notif-time');
+  if (!body) return;
+
+  notifTime.textContent = job.time;
+  pdfName.textContent = `Resume_${job.title.split(' ').slice(0,2).join('_')}_${job.company}.pdf`;
+
+  body.style.opacity = '0';
+  body.style.transform = 'translateY(-8px)';
+
+  setTimeout(() => {
+    body.innerHTML = `
+      <div class="job-alert-line">🔔 <span class="lbl">New Job Match</span></div>
+      <div class="job-title-line">📌 ${job.title} @ ${job.company}</div>
+      <div class="job-alert-line">📍 ${job.location} · ${job.type}</div>
+      <div class="job-alert-line">🌐 Source: ${job.portal}</div>
+      <div class="job-alert-line">📅 Seniority signal: ${job.seniority}</div>
+      <div class="skills-line">
+        ${job.skills.map(s => `<span class="skill-pill">${s}</span>`).join('')}
+      </div>`;
+    body.style.transition = 'opacity 0.38s ease, transform 0.38s ease';
+    body.style.opacity = '1';
+    body.style.transform = 'translateY(0)';
+  }, 210);
+}
+
+renderJob(jobs[0]);
+setInterval(() => { jobIndex = (jobIndex + 1) % jobs.length; renderJob(jobs[jobIndex]); }, 4000);
+
+// ── COUNTDOWN ──
+let secs = 287;
+function tick() {
+  const el = document.getElementById('countdown');
+  if (el) el.textContent = `${Math.floor(secs/60)}:${(secs%60).toString().padStart(2,'0')}`;
+  secs = secs > 0 ? secs - 1 : 300;
+}
+tick();
+setInterval(tick, 1000);
+
+// ── STICKY NAV ──
+const nav = document.getElementById('nav');
+window.addEventListener('scroll', () => {
+  nav.classList.toggle('scrolled', window.scrollY > 40);
+}, { passive: true });
+
+// ── SCROLL REVEALS ──
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.08 });
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+// ── HAMBURGER MENU ──
+function toggleMenu() {
+  const ham = document.getElementById('hamburger');
+  const menu = document.getElementById('mobile-menu');
+  const open = ham.classList.toggle('open');
+  menu.classList.toggle('open', open);
+  document.body.style.overflow = open ? 'hidden' : '';
+}
+function closeMenu() {
+  document.getElementById('hamburger').classList.remove('open');
+  document.getElementById('mobile-menu').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+// ── WAITLIST COUNTER ──
+(function () {
+  const KEY = 'jb_wl';
+  let count = parseInt(localStorage.getItem(KEY), 10);
+  if (!count) {
+    // First visit: seed with a realistic number
+    count = Math.floor(Math.random() * 43) + 51; // 51–93
+    localStorage.setItem(KEY, count);
+  } else if (Math.random() < 0.2) {
+    // 20% chance of +1 on each subsequent visit (simulates growth)
+    count += 1;
+    localStorage.setItem(KEY, count);
+  }
+  const el = document.getElementById('wl-number');
+  if (el) el.textContent = count;
+})();
+
+// ── WAITLIST FORM (Formspree) ──
+async function handleWaitlist(e) {
+  e.preventDefault();
+  const form = e.target;
+  const btn = document.getElementById('cta-btn');
+  btn.textContent = 'Sending…';
+  btn.disabled = true;
+
+  try {
+    const res = await fetch(form.action, {
+      method: 'POST',
+      body: new FormData(form),
+      headers: { Accept: 'application/json' }
+    });
+
+    if (res.ok) {
+      // Bump counter for this submitter
+      const KEY = 'jb_wl';
+      const cur = parseInt(localStorage.getItem(KEY), 10) || 0;
+      localStorage.setItem(KEY, cur + 1);
+
+      form.style.display = 'none';
+      document.getElementById('form-success').style.display = 'flex';
+    } else {
+      btn.textContent = 'Try again';
+      btn.disabled = false;
+    }
+  } catch {
+    btn.textContent = 'Try again';
+    btn.disabled = false;
+  }
+}
+</script>
+</body>
+</html>
