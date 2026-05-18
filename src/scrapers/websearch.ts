@@ -1,11 +1,9 @@
-import { BrowserContext } from 'playwright';
 import { WebJobLead } from '../types';
 import { config } from '../config';
 import { isWebLeadSeen, markWebLeadSeen } from '../dedup';
-import { createBrowser, createStealthContext, randomDelay } from './browser';
+import { parseSeniorityFromJD } from '../filter';
 
 // Aggregators and news sites — we only want direct company career pages
-// Skip portals already covered by dedicated scrapers + noise sites
 const SKIP_DOMAINS = new Set([
   'linkedin.com', 'bayt.com', 'indeed.com', 'naukrigulf.com', 'gulftalent.com',
   'glassdoor.com', 'monster.com', 'ziprecruiter.com', 'careerjet.com', 'jobsdb.com',
@@ -13,7 +11,7 @@ const SKIP_DOMAINS = new Set([
   'gulfnews.com', 'khaleejtimes.com', 'thenationalnews.com',
   'arabianbusiness.com', 'zawya.com', 'menabytes.com', 'wamda.com',
   'dubizzle.com', 'olx.com', 'expatriates.com',
-  'duckduckgo.com', 'google.com', 'google.ae', 'bing.com', 'brave.com',
+  'duckduckgo.com', 'google.com', 'google.ae', 'bing.com', 'serper.dev',
   'youtube.com', 'facebook.com', 'twitter.com', 'instagram.com',
   'wikipedia.org', 'reddit.com',
 ]);
@@ -23,8 +21,6 @@ const CAREER_PATH = /\/(jobs?|careers?|vacancies|openings?|positions?|apply|hiri
 
 // ─── Query builder ────────────────────────────────────────────────────────────
 
-// One query per keyword batch — simple format Brave handles reliably.
-// Domain filtering (.ae only) is done in code after results come back.
 function buildQueries(): string[] {
   const kws = config.keywords;
   const mid = Math.ceil(kws.length / 2);
@@ -37,7 +33,7 @@ function buildQueries(): string[] {
   return [makeQuery(kws.slice(0, mid)), makeQuery(kws.slice(mid))];
 }
 
-// ─── Brave Search API ─────────────────────────────────────────────────────────
+// ─── Serper.dev (Google Search) ───────────────────────────────────────────────
 
 interface SearchResult {
   title: string;
@@ -45,80 +41,57 @@ interface SearchResult {
   snippet: string;
 }
 
-interface BraveWebResult {
+interface SerperOrganic {
   title: string;
-  url: string;
-  description?: string;
+  link: string;
+  snippet: string;
 }
 
-interface BraveResponse {
-  web?: { results?: BraveWebResult[] };
+interface SerperResponse {
+  organic?: SerperOrganic[];
 }
 
-async function searchBrave(query: string): Promise<SearchResult[]> {
-  const apiKey = process.env['BRAVE_SEARCH_API_KEY'];
-  if (!apiKey) throw new Error('BRAVE_SEARCH_API_KEY not set in .env');
+async function searchSerper(query: string): Promise<SearchResult[]> {
+  const apiKey = process.env['SERPER_API_KEY'];
+  if (!apiKey) throw new Error('SERPER_API_KEY not set in .env');
 
-  const params = new URLSearchParams({
-    q: query,
-    count: '10',
-  });
-
-  const res = await fetch(`https://api.search.brave.com/res/v1/web/search?${params}`, {
+  const res = await fetch('https://google.serper.dev/search', {
+    method: 'POST',
     headers: {
-      'Accept': 'application/json',
-      'Accept-Encoding': 'gzip',
-      'X-Subscription-Token': apiKey,
+      'X-API-KEY': apiKey,
+      'Content-Type': 'application/json',
     },
+    body: JSON.stringify({
+      q: query,
+      num: 10,
+      tbs: 'qdr:d2', // freshness: last 2 days only
+    }),
   });
 
-  if (!res.ok) throw new Error(`Brave Search returned HTTP ${res.status}`);
+  if (!res.ok) throw new Error(`Serper returned HTTP ${res.status}`);
 
-  const data = await res.json() as BraveResponse;
+  const data = await res.json() as SerperResponse;
 
-  return (data.web?.results ?? []).map(r => ({
+  return (data.organic ?? []).map(r => ({
     title: r.title,
-    url: r.url,
-    snippet: r.description ?? '',
+    url: r.link,
+    snippet: r.snippet,
   }));
 }
 
-// ─── JD fetching from the actual company career page ─────────────────────────
+// ─── Jina AI Reader — fetches clean text from any URL ────────────────────────
 
-const JD_SELECTORS = [
-  '[class*="job-description"]',
-  '[class*="jobDescription"]',
-  '[id*="job-description"]',
-  '[class*="job-detail"]',
-  '[class*="jobDetail"]',
-  '[class*="vacancy"]',
-  '[class*="role-description"]',
-  '[class*="position-description"]',
-  'article',
-  'main',
-];
-
-async function fetchJDFromPage(url: string, context: BrowserContext): Promise<string> {
-  const page = await context.newPage();
+async function fetchJDViaJina(url: string): Promise<string> {
   try {
-    await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 20000 });
-    await randomDelay(1000, 2000);
-
-    const text = await page.evaluate((selectors: string[]): string => {
-      for (const sel of selectors) {
-        const el = document.querySelector(sel);
-        if (!el) continue;
-        const t = (el.textContent ?? '').replace(/\s+/g, ' ').trim();
-        if (t.length > 200) return t.slice(0, 2500);
-      }
-      return '';
-    }, JD_SELECTORS);
-
-    return text;
+    const res = await fetch(`https://r.jina.ai/${url}`, {
+      headers: { Accept: 'text/plain' },
+      signal: AbortSignal.timeout(15000),
+    });
+    if (!res.ok) return '';
+    const text = await res.text();
+    return text.slice(0, 3000); // enough for seniority parsing
   } catch {
     return '';
-  } finally {
-    await page.close();
   }
 }
 
@@ -147,65 +120,66 @@ function extractCompany(url: string): string {
   }
 }
 
+// Returns true if the JD is clearly too senior for configured max_years
+function isTooSenior(text: string): boolean {
+  const parsed = parseSeniorityFromJD(text);
+  if (!parsed) return false; // ambiguous — let it through per spec
+  return parsed.min > config.seniority.max_years;
+}
+
 // ─── Main exported function ───────────────────────────────────────────────────
 
 export async function searchWebJobs(): Promise<WebJobLead[]> {
   const queries = buildQueries();
   const newLeads: WebJobLead[] = [];
 
-  // Only Playwright for JD page fetching — search itself uses plain fetch
-  const browser = await createBrowser();
-  const context = await createStealthContext(browser);
+  for (const query of queries) {
+    const tag = `[${new Date().toISOString()}] [WebSearch]`;
+    console.log(`${tag} Query: ${query.slice(0, 90)}`);
 
-  try {
-    for (const query of queries) {
-      const tag = `[${new Date().toISOString()}] [WebSearch]`;
-      console.log(`${tag} Query: ${query.slice(0, 90)}...`);
+    let results: SearchResult[] = [];
+    try {
+      results = await searchSerper(query);
+      console.log(`${tag} Serper returned ${results.length} results`);
+    } catch (err) {
+      console.error(`${tag} Serper failed: ${(err as Error).message}`);
+      continue;
+    }
 
-      let results: SearchResult[] = [];
-      try {
-        results = await searchBrave(query);
-        console.log(`${tag} Brave returned ${results.length} results`);
-      } catch (err) {
-        console.error(`${tag} Brave search failed: ${(err as Error).message}`);
+    for (const result of results) {
+      if (isSkippedDomain(result.url)) continue;
+      if (!CAREER_PATH.test(result.url) && !CAREER_PATH.test(result.title)) continue;
+      if (isWebLeadSeen(result.url)) continue;
+
+      const innerTag = `[${new Date().toISOString()}] [WebSearch]`;
+      console.log(`${innerTag} Fetching JD: ${result.url}`);
+
+      const jdText = await fetchJDViaJina(result.url);
+      const textToCheck = jdText || result.snippet;
+
+      if (isTooSenior(textToCheck)) {
+        console.log(`${innerTag} SKIP (too senior): "${result.title}"`);
         continue;
       }
 
-      for (const result of results) {
-        if (isSkippedDomain(result.url)) continue;
-        if (!CAREER_PATH.test(result.url) && !CAREER_PATH.test(result.title)) continue;
-        if (isWebLeadSeen(result.url)) continue;
+      console.log(`${innerTag} NEW: "${result.title}" @ ${extractCompany(result.url)}`);
 
-        const innerTag = `[${new Date().toISOString()}] [WebSearch]`;
-        console.log(`${innerTag} NEW: "${result.title}" → ${result.url}`);
+      const lead: WebJobLead = {
+        url: result.url,
+        title: result.title,
+        company: extractCompany(result.url),
+        snippet: result.snippet,
+        jdText: jdText || undefined,
+        foundAt: new Date(),
+      };
 
-        const jdText = await fetchJDFromPage(result.url, context);
-        if (jdText) {
-          console.log(`${innerTag} Got ${jdText.length} chars of JD text`);
-        } else {
-          console.log(`${innerTag} No JD extracted — will use search snippet`);
-        }
+      markWebLeadSeen(lead.url, lead.title, lead.company);
+      newLeads.push(lead);
 
-        const lead: WebJobLead = {
-          url: result.url,
-          title: result.title,
-          company: extractCompany(result.url),
-          snippet: result.snippet,
-          jdText: jdText || undefined,
-          foundAt: new Date(),
-        };
-
-        markWebLeadSeen(lead.url, lead.title, lead.company);
-        newLeads.push(lead);
-
-        await randomDelay(1500, 3000);
-      }
-
-      await randomDelay(2000, 3500); // breathe between queries
+      await new Promise(r => setTimeout(r, 800));
     }
-  } finally {
-    await context.close();
-    await browser.close();
+
+    await new Promise(r => setTimeout(r, 1200)); // pause between Serper queries
   }
 
   console.log(`[${new Date().toISOString()}] [WebSearch] Done — ${newLeads.length} new lead(s)`);
@@ -218,7 +192,7 @@ if (require.main === module) {
   const { initDb } = require('../dedup') as { initDb: () => void };
   initDb();
 
-  console.log('\n=== WebSearch self-test (Brave Search API → Playwright JD fetch) ===\n');
+  console.log('\n=== WebSearch self-test (Serper.dev → Jina AI Reader) ===\n');
   console.log('Queries:');
   buildQueries().forEach((q, i) => console.log(`  ${i + 1}. ${q}`));
   console.log('\nRunning...\n');

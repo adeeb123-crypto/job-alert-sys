@@ -52,7 +52,7 @@ export interface Secrets {
   claudeApiKey: string;
   smtpUser: string;
   smtpPass: string;
-  braveSearchApiKey: string | null;
+  serperApiKey: string | null;
 }
 
 // A job lead found via Google search on company websites — simpler than Job,

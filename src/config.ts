@@ -57,7 +57,7 @@ function loadSecrets(): Secrets {
     smtpUser: requireEnv('SMTP_USER'),
     smtpPass: requireEnv('SMTP_PASS'),
     // Optional — web search feature is silently disabled when absent
-    braveSearchApiKey: process.env['BRAVE_SEARCH_API_KEY'] ?? null,
+    serperApiKey: process.env['SERPER_API_KEY'] ?? null,
   };
 }
 
