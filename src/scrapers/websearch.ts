@@ -65,6 +65,8 @@ async function searchSerper(query: string): Promise<SearchResult[]> {
       q: query,
       num: 10,
       tbs: 'qdr:d2', // freshness: last 2 days only
+      gl: 'ae',      // country: UAE
+      hl: 'en',      // language: English
     }),
   });
 
