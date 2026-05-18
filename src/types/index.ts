@@ -52,7 +52,8 @@ export interface Secrets {
   claudeApiKey: string;
   smtpUser: string;
   smtpPass: string;
-  serperApiKey: string | null;
+  braveSearchApiKey: string | null;
+  joobleApiKey: string;
 }
 
 // A job lead found via Google search on company websites — simpler than Job,

@@ -56,8 +56,8 @@ function loadSecrets(): Secrets {
     claudeApiKey: requireEnv('CLAUDE_API_KEY'),
     smtpUser: requireEnv('SMTP_USER'),
     smtpPass: requireEnv('SMTP_PASS'),
-    // Optional — web search feature is silently disabled when absent
-    serperApiKey: process.env['SERPER_API_KEY'] ?? null,
+    braveSearchApiKey: process.env['BRAVE_SEARCH_API_KEY'] ?? null,
+    joobleApiKey: requireEnv('JOOBLE_API_KEY'),
   };
 }
 
