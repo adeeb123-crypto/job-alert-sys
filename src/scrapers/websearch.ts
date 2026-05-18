@@ -122,6 +122,16 @@ function extractCompany(url: string): string {
   }
 }
 
+const UAE_SIGNALS = [
+  'dubai', 'abu dhabi', 'sharjah', 'ajman', 'uae', 'united arab emirates',
+  'remote (uae)', '.ae',
+];
+
+function isUAEResult(result: SearchResult): boolean {
+  const haystack = `${result.title} ${result.snippet} ${result.url}`.toLowerCase();
+  return UAE_SIGNALS.some(s => haystack.includes(s));
+}
+
 // Returns true if the JD is clearly too senior for configured max_years
 function isTooSenior(text: string): boolean {
   const parsed = parseSeniorityFromJD(text);
@@ -151,6 +161,10 @@ export async function searchWebJobs(): Promise<WebJobLead[]> {
     for (const result of results) {
       if (isSkippedDomain(result.url)) continue;
       if (!CAREER_PATH.test(result.url) && !CAREER_PATH.test(result.title)) continue;
+      if (!isUAEResult(result)) {
+        console.log(`${tag} SKIP (not UAE): "${result.title}"`);
+        continue;
+      }
       if (isWebLeadSeen(result.url)) continue;
 
       const innerTag = `[${new Date().toISOString()}] [WebSearch]`;
