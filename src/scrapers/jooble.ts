@@ -4,12 +4,12 @@ import { generateFingerprint } from '../dedup';
 import { config, secrets } from '../config';
 
 interface JoobleJob {
-  title: string;
-  company: string;
-  location: string;
-  link: string;
-  snippet: string;
-  updated: string;
+  title?: string;
+  company?: string;
+  location?: string;
+  link?: string;
+  snippet?: string;
+  updated?: string;
 }
 
 interface JoobleResponse {
@@ -28,6 +28,7 @@ function postJson(apiKey: string, body: object): Promise<JoobleResponse> {
         'Content-Type': 'application/json',
         'Content-Length': Buffer.byteLength(payload),
       },
+      timeout: 15000,
     };
 
     const req = https.request(options, res => {
@@ -47,6 +48,9 @@ function postJson(apiKey: string, body: object): Promise<JoobleResponse> {
     });
 
     req.on('error', reject);
+    req.on('timeout', () => {
+      req.destroy(new Error('Jooble request timed out after 15s'));
+    });
     req.write(payload);
     req.end();
   });
