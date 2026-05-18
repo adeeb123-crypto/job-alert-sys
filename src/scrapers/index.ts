@@ -1,31 +1,30 @@
 import { Job } from '../types';
-import { scrapeIndeed } from './indeed';
 import { scrapeLinkedIn } from './linkedin';
+import { scrapeJooble } from './jooble';
 import { scrapeNaukriGulf } from './naukrigulf';
-import { scrapebayt } from './bayt';
 import { scrapeGulfTalent } from './gulftalent';
 import { scrapeCompanyPages } from './companyScraper';
 
-export { scrapeIndeed } from './indeed';
 export { scrapeLinkedIn } from './linkedin';
+export { scrapeJooble } from './jooble';
 export { scrapeNaukriGulf } from './naukrigulf';
-export { scrapebayt } from './bayt';
 export { scrapeGulfTalent } from './gulftalent';
 export { scrapeCompanyPages } from './companyScraper';
+// Kept for future scraping engine work — not active in pipeline
+export { scrapeIndeed } from './indeed';
+export { scrapebayt } from './bayt';
 
 export async function runAllScrapers(): Promise<Job[]> {
   console.log(`[${new Date().toISOString()}] Running all scrapers...`);
 
-  // CompanyPages paused — ineffective against modern career page bot protection
   const results = await Promise.allSettled([
     scrapeLinkedIn(),
-    scrapeIndeed(),
+    scrapeJooble(),
     scrapeNaukriGulf(),
-    scrapebayt(),
     scrapeGulfTalent(),
   ]);
 
-  const labels = ['LinkedIn', 'Indeed', 'NaukriGulf', 'Bayt', 'GulfTalent'];
+  const labels = ['LinkedIn', 'Jooble', 'NaukriGulf', 'GulfTalent'];
   const raw: Job[] = [];
 
   results.forEach((result, i) => {
