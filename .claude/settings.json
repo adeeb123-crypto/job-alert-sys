@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node -e ' *)",
+      "Bash(del \"c:\\\\Users\\\\adeeb.w\\\\Work\\\\job-alert-system\\\\src\\\\scrapers\\\\_bingtest.ts\")",
+      "Bash(npx ts-node *)",
+      "Bash(gh auth *)",
+      "Bash(git init *)",
+      "Bash(git add *)"
+    ]
+  }
+}
