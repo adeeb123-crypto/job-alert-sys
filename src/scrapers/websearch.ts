@@ -159,13 +159,22 @@ export async function searchWebJobs(): Promise<WebJobLead[]> {
     }
 
     for (const result of results) {
-      if (isSkippedDomain(result.url)) continue;
-      if (!CAREER_PATH.test(result.url) && !CAREER_PATH.test(result.title)) continue;
+      if (isSkippedDomain(result.url)) {
+        console.log(`${tag} SKIP (aggregator): "${result.title}"`);
+        continue;
+      }
+      if (!CAREER_PATH.test(result.url) && !CAREER_PATH.test(result.title)) {
+        console.log(`${tag} SKIP (no career path): "${result.title}"`);
+        continue;
+      }
       if (!isUAEResult(result)) {
         console.log(`${tag} SKIP (not UAE): "${result.title}"`);
         continue;
       }
-      if (isWebLeadSeen(result.url)) continue;
+      if (isWebLeadSeen(result.url)) {
+        console.log(`${tag} SKIP (already seen): "${result.title}"`);
+        continue;
+      }
 
       const innerTag = `[${new Date().toISOString()}] [WebSearch]`;
       console.log(`${innerTag} Fetching JD: ${result.url}`);
