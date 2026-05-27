@@ -61,6 +61,20 @@ job-alert-system/
 │       ├── gulftalent.ts     # Stub — Akamai CDN blocks all access, permanently disabled
 │       ├── websearch.ts      # Serper.dev + Jina AI Reader — ACTIVE
 │       └── companyScraper.ts # Curated UAE company career pages — PAUSED
+├── src/antidetect/           # NEW (Stage 1)
+│   ├── proxyManager.ts       # SmartProxy residential proxy config, sticky sessions
+│   └── stealthBrowser.ts     # playwright-extra + stealth plugin, replaces browser.ts
+├── src/crawler/              # NEW (Stage 2)
+│   ├── index.ts              # Persistent main loop — runs 24/7 as PM2 process
+│   ├── companyStore.ts       # companies table CRUD + seed loader
+│   ├── crawlQueue.ts         # crawl_queue table — batch dequeue, reschedule, fail tracking
+│   ├── careerPageLocator.ts  # Finds career URL for a domain (probe → link scan → Claude)
+│   ├── changeDetector.ts     # SHA256 hash change detection, strips dynamic noise
+│   ├── jobExtractor.ts       # Jina AI first, Playwright fallback → Job[]
+│   └── discoveryEngine.ts    # Daily Serper + tech hub discovery of new UAE companies
+├── src/data/
+│   └── uaeCompanies.ts       # NEW — seed list of ~90 UAE tech companies
+├── ecosystem.config.js       # NEW — PM2 dual-process config (scheduler + crawler)
 ├── docs/
 │   └── superpowers/
 │       ├── specs/            # Design documents
@@ -95,30 +109,49 @@ job-alert-system/
 | 7c | Jooble API scraper | Done (dropped — bad data quality/timing) |
 | 7d | Landing page + Vercel deployment | Done |
 | 8 | PDF renderer (`pdfRenderer.ts`) | Done |
-| 9 | GitHub Actions + stealth browser upgrade | **Next — designed, not yet implemented** |
+| 9 | GitHub Actions + stealth browser | **DROPPED** — replaced by Unified Crawler plan |
+| 9b | Unified Crawler: Stage 1 (anti-detection + portal revival) | **Next — plan written, not yet implemented** |
+| 9c | Unified Crawler: Stage 2 (persistent career page crawler) | **Next — plan written, not yet implemented** |
 | 10 | Docker + Fly.io deployment | Deferred |
 
 ---
 
-## Phase 9 Plan — GitHub Actions + Stealth Scraper
+## Unified Crawler Plan — Replacing Phase 9 (session 2026-05-27)
 
-**Problem:** DigitalOcean VPS IPs are on Cloudflare's datacenter blocklist. Indeed, Bayt, Jooble all return 403. Only LinkedIn works (uses a guest API endpoint Cloudflare doesn't protect).
+**Why Phase 9 (GitHub Actions) was dropped:**
+A persistent 24/7 career page crawler cannot run on GitHub Actions (6-hour job limit, no persistent process). The DigitalOcean Droplet is permanent. GitHub Actions is dropped entirely.
 
-**Design decisions made (session 2026-05-19):**
-- Move scraping + full pipeline to GitHub Actions (scheduled every 30 min)
-- GitHub Actions runs on Microsoft Azure IPs — different range from DigitalOcean, not universally blocked
-- Upgrade `browser.ts` with `playwright-extra` + `puppeteer-stealth-plugin` to fix ~10 fingerprint vectors Cloudflare checks (canvas, WebGL, navigator.plugins, chrome.runtime, permissions API, outerWidth)
-- Dedup persistence: commit `data/dedup.db` back to repo after each run (git as state store)
-- DigitalOcean server: shut down (not needed once GH Actions handles the pipeline)
-- Resume tailoring: stays disabled (cap = 0) until coverage is confirmed working
+**Approach chosen: Staged Foundation Build (Approach C)**
 
-**What user needs to do for Phase 9:**
-1. Add secrets to GitHub repo → Settings → Secrets → Actions: `TELEGRAM_BOT_TOKEN`, `CLAUDE_API_KEY`, `SMTP_USER`, `SMTP_PASS`, `BRAVE_SEARCH_API_KEY`
-2. Push code to GitHub after Phase 9 is implemented
-3. Stop PM2 on DigitalOcean once GH Actions confirms working
-4. Monitor first few workflow runs in GitHub Actions tab
+### Stage 1 — Anti-Detection Foundation + Portal Revival
+Plan: `docs/superpowers/plans/2026-05-27-stage1-antidetect-portal-revival.md`
 
-**Risk acknowledged:** GitHub Actions IPs (Azure) are still datacenter IPs. They may bypass Cloudflare's blocklist for Indeed/Bayt or may not — depends on their specific Cloudflare config. Worst case: LinkedIn still the only source, but stealth layer is built for the future scraping engine goal.
+- New module `src/antidetect/proxyManager.ts` — residential proxy config with sticky sessions per domain
+- New module `src/antidetect/stealthBrowser.ts` — replaces `browser.ts`, uses `playwright-extra` + `puppeteer-extra-plugin-stealth`
+- **Proxy provider:** SmartProxy residential (~$28/month, UAE-targeted exit nodes)
+- Indeed, Bayt re-enabled (~90% and ~75-80% confidence respectively)
+- NaukriGulf upgraded attempt (~40-50% — PerimeterX, no guarantees)
+- `ecosystem.config.js` added for PM2
+
+**What Adeeb must do before Stage 1 runs:** Sign up at smartproxy.com, get `PROXY_USER` + `PROXY_PASS`, add to `.env` on DO server.
+
+### Stage 2 — Persistent Company Career Page Crawler
+Plan: `docs/superpowers/plans/2026-05-27-stage2-persistent-crawler.md`
+
+- Runs as second PM2 process (`crawler`) alongside existing `scheduler`
+- Two new SQLite tables: `companies` + `crawl_queue` (added to `data/dedup.db`)
+- Seeds with ~90 curated UAE companies (`src/data/uaeCompanies.ts`)
+- Modules: `companyStore`, `crawlQueue`, `changeDetector`, `careerPageLocator`, `jobExtractor`, `discoveryEngine`
+- Change detection: SHA256 hash of normalized career page content
+- Job extraction: Jina AI Reader first, Playwright fallback for SPAs
+- Freshness: crawl timestamp + explicit date extraction + sitemap.xml `lastmod` + job ID delta
+- Discovery: daily Serper queries + UAE tech hub directories (in5, Hub71, DIFC)
+- Outputs `Job[]` with `portal: 'CareerPage'` — plugs straight into existing filter → dedup → notifier
+- PM2 memory guardrail: `max_memory_restart: 500M`, browser instances recycled every 50 fetches
+
+**Key verified export names (for crawler/index.ts):**
+- `notifyJob(job, tailoringResult)` from `notifier.ts`
+- `filterJobs(jobs, config)` from `filter.ts`
 
 ---
 
@@ -136,18 +169,23 @@ job-alert-system/
 **`.env` key state:**
 - `TELEGRAM_BOT_TOKEN`: configured
 - `CLAUDE_API_KEY`: configured
-- `BRAVE_SEARCH_API_KEY`: configured (Brave Search API)
+- `SERPER_API_KEY`: configured (Serper.dev — replaced Brave Search)
+- `BRAVE_SEARCH_API_KEY`: **cancelled and removed** (2026-05-27)
 - `JOOBLE_API_KEY`: configured (kept in .env but scraper dropped from pipeline)
 - `SMTP_USER` / `SMTP_PASS`: configured (Gmail App Password)
+- `PROXY_HOST` / `PROXY_PORT` / `PROXY_USER` / `PROXY_PASS`: **pending** — needs SmartProxy signup
 
-**`.env.example` template includes:**
+**`.env.example` template (updated in Stage 1 Task 1):**
 ```
 TELEGRAM_BOT_TOKEN=
 CLAUDE_API_KEY=
 SMTP_USER=
 SMTP_PASS=
-BRAVE_SEARCH_API_KEY=
-JOOBLE_API_KEY=
+SERPER_API_KEY=
+PROXY_HOST=gate.smartproxy.com
+PROXY_PORT=10000
+PROXY_USER=
+PROXY_PASS=
 ```
 
 ---
@@ -166,18 +204,20 @@ JOOBLE_API_KEY=
 - Jina AI Reader fetches full JD text (free, no API key)
 - Result: `WebJobLead[]` — Telegram card only, no Claude tailoring
 
-### NaukriGulf / GulfTalent — Permanent Stubs
-- Return `[]` immediately — bot protection too aggressive
+### NaukriGulf (`src/scrapers/naukrigulf.ts`) — Stub → Re-implement in Stage 1
+- Currently returns `[]` (PerimeterX permanent stub)
+- Stage 1 will attempt full re-implementation with stealthBrowser (40-50% success chance)
+- GulfTalent remains permanent stub (Akamai CDN — not worth attempting)
 
 ### Jooble (`src/scrapers/jooble.ts`) — DROPPED
 - File exists, exported but not called in `runAllScrapers()`
 - Reason: inaccurate job timing (24h filter unreliable), stale listings
 - Kept on disk for reference
 
-### Indeed / Bayt — Cloudflare Blocked
+### Indeed / Bayt — Cloudflare Blocked → Will be revived in Stage 1
 - Files exist, not in `runAllScrapers()`
 - Blocked on DigitalOcean + local test confirmed Cloudflare 403
-- Will be revived in Phase 9 with stealth upgrade + GH Actions
+- Stage 1 re-enables with stealthBrowser + SmartProxy residential IPs
 
 ---
 
@@ -193,9 +233,14 @@ JOOBLE_API_KEY=
 - LinkedIn covers aggregator side
 - WebSearch covers direct company career pages not on aggregators
 
-### Browser Stealth (Current — Basic)
-- `browser.ts` only masks `navigator.webdriver`
-- Phase 9 will add `playwright-extra` + `puppeteer-stealth-plugin`
+### Browser Stealth (Current — Basic, Upgrade Planned)
+- `src/scrapers/browser.ts` — only masks `navigator.webdriver`
+- Stage 1 replaces this with `src/antidetect/stealthBrowser.ts`:
+  - `playwright-extra` + `puppeteer-extra-plugin-stealth`
+  - Fixes: canvas, WebGL, `navigator.plugins`, `chrome.runtime`, `permissions` API, `outerWidth`
+  - Wires SmartProxy residential proxies automatically
+  - Adds `homepageFirst()`, `realisticViewport()`, proper `randomDelay()`
+- `src/antidetect/proxyManager.ts` — manages proxy config with sticky sessions per domain
 
 ### AI Resume Tailoring — Tone and Style Rules
 - Edit ALL sections: Summary, Skills, every Experience bullet
@@ -291,26 +336,33 @@ node_modules\.bin\tsx src\index.ts
 | Jooble 403 locally | Missing/malformed `JOOBLE_API_KEY` in `.env` | Fixed .env syntax |
 | Jooble data quality | Stale listings, inaccurate 24h filter | Dropped Jooble, plan Phase 9 stealth |
 | SERPER_API_KEY in .env.example | Implementer regression | Fixed to BRAVE_SEARCH_API_KEY |
+| BRAVE_SEARCH_API_KEY still in .env.example | Stale key after Brave replaced by Serper | Fixed in Stage 1 Task 1 (.env.example rewritten) |
+| Brave API key active despite service unused | Oversight | Cancelled 2026-05-27; SERPER_API_KEY is the active key |
 
 ---
 
 ## Open Items (Priority Order)
 
-### Phase 9 (Next Build)
-1. **GH Actions + stealth browser** — design approved 2026-05-19, implementation plan pending
-   - Install `playwright-extra` + `puppeteer-stealth-plugin`
-   - Create `.github/workflows/scrape.yml` (scheduled every 30 min)
-   - Commit `data/dedup.db` back to repo for persistence
-   - Shut down DigitalOcean server once confirmed working
+### Stage 1 — Next Build (plan ready)
+1. **Sign up for SmartProxy** — Adeeb's one required action. smartproxy.com, residential plan ~$28/month. Get `PROXY_USER` + `PROXY_PASS`. Add to `.env` on DO server.
+2. **Execute Stage 1 plan** — `docs/superpowers/plans/2026-05-27-stage1-antidetect-portal-revival.md`
+   - Build `proxyManager.ts` + `stealthBrowser.ts`
+   - Re-enable Indeed, Bayt, NaukriGulf with stealth + proxy
+   - `ecosystem.config.js` for PM2
+
+### Stage 2 — After Stage 1 Confirmed Working
+3. **Execute Stage 2 plan** — `docs/superpowers/plans/2026-05-27-stage2-persistent-crawler.md`
+   - 90-company seed list, crawl queue, change detection, career page locator
+   - Persistent PM2 crawler process
+   - Daily discovery engine
 
 ### Credentials / Config
-2. **Re-enable AI cap** — set `ai.max_calls_per_day` back from 0 to desired number once pipeline is stable on GH Actions
-3. **Formspree form ID** — replace `YOUR_FORMSPREE_ID` in `landing.html`, redeploy to Vercel
+4. **Re-enable AI cap** — set `ai.max_calls_per_day` from 0 to desired number once pipeline stable
+5. **Formspree form ID** — replace `YOUR_FORMSPREE_ID` in `landing.html`, redeploy to Vercel
 
 ### Deferred
-4. **Scraping engine** — long-term goal: modular scraper framework with proper anti-detection, reusable beyond job search
-5. **Custom domain** — `jobalertsuae.com` (~$11/year) when ready to go public
-6. **Docker + Fly.io** — Phase 10, after GH Actions confirmed
+6. **Custom domain** — `jobalertsuae.com` (~$11/year) when ready to go public
+7. **Docker + Fly.io** — Phase 10, after crawler confirmed stable
 
 ---
 
