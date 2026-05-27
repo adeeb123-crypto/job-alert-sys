@@ -110,8 +110,8 @@ job-alert-system/
 | 7d | Landing page + Vercel deployment | Done |
 | 8 | PDF renderer (`pdfRenderer.ts`) | Done |
 | 9 | GitHub Actions + stealth browser | **DROPPED** — replaced by Unified Crawler plan |
-| 9b | Unified Crawler: Stage 1 (anti-detection + portal revival) | **Next — plan written, not yet implemented** |
-| 9c | Unified Crawler: Stage 2 (persistent career page crawler) | **Next — plan written, not yet implemented** |
+| 9b | Unified Crawler: Stage 1 (anti-detection + portal revival) | **Tasks 1–8 done (session 8); Task 9 (DO deploy + proxy verify) pending** |
+| 9c | Unified Crawler: Stage 2 (persistent career page crawler) | **Next after Stage 1 confirmed on DO server** |
 | 10 | Docker + Fly.io deployment | Deferred |
 
 ---
@@ -125,15 +125,31 @@ A persistent 24/7 career page crawler cannot run on GitHub Actions (6-hour job l
 
 ### Stage 1 — Anti-Detection Foundation + Portal Revival
 Plan: `docs/superpowers/plans/2026-05-27-stage1-antidetect-portal-revival.md`
+**Status: Tasks 1–8 complete (session 8). Task 9 (DO server deploy) pending.**
 
-- New module `src/antidetect/proxyManager.ts` — residential proxy config with sticky sessions per domain
-- New module `src/antidetect/stealthBrowser.ts` — replaces `browser.ts`, uses `playwright-extra` + `puppeteer-extra-plugin-stealth`
-- **Proxy provider:** SmartProxy residential (~$28/month, UAE-targeted exit nodes)
-- Indeed, Bayt re-enabled (~90% and ~75-80% confidence respectively)
-- NaukriGulf upgraded attempt (~40-50% — PerimeterX, no guarantees)
-- `ecosystem.config.js` added for PM2
+| Task | SHA | Result |
+|------|-----|--------|
+| 1. playwright-extra + .env.example | 1ac29dd | ✅ |
+| 2. proxyManager.ts | e1fd445 | ✅ All 5 self-tests pass |
+| 3. stealthBrowser.ts | cba7103 | ✅ All 4 self-tests pass |
+| 4. indeed.ts wired | bf70447 | ✅ 6 live jobs locally |
+| 5. bayt.ts wired | b397587 | ✅ 96 live jobs locally |
+| 6. naukrigulf.ts re-impl | 9a559e7 | ✅ Runs clean, 0 results (PerimeterX) |
+| 7. scrapers/index.ts | 7d24421 | ✅ tsc clean, Indeed + Bayt active |
+| 8. ecosystem.config.js | 2a775f9 | ✅ PM2 config ready |
+| 9. DO server deploy | — | ⏳ Pending — Adeeb runs this |
 
-**What Adeeb must do before Stage 1 runs:** Sign up at smartproxy.com, get `PROXY_USER` + `PROXY_PASS`, add to `.env` on DO server.
+**Notable local test results:** Indeed returned 6 jobs and Bayt returned 96 jobs during local testing (no proxy needed on local residential IP). DO server test is the definitive confirmation that proxy bypasses Cloudflare from datacenter IP.
+
+**Task 9 — Adeeb runs on the DO droplet:**
+```bash
+nano .env  # add PROXY_HOST/PORT/USER/PASS
+git pull origin master && npm install && npm run build
+node dist/scrapers/indeed.js   # confirm jobs returned
+node dist/scrapers/bayt.js     # confirm jobs returned
+pm2 restart ecosystem.config.js && pm2 save
+pm2 logs scheduler --lines 50  # watch one full cycle
+```
 
 ### Stage 2 — Persistent Company Career Page Crawler
 Plan: `docs/superpowers/plans/2026-05-27-stage2-persistent-crawler.md`
@@ -173,7 +189,7 @@ Plan: `docs/superpowers/plans/2026-05-27-stage2-persistent-crawler.md`
 - `BRAVE_SEARCH_API_KEY`: **cancelled and removed** (2026-05-27)
 - `JOOBLE_API_KEY`: configured (kept in .env but scraper dropped from pipeline)
 - `SMTP_USER` / `SMTP_PASS`: configured (Gmail App Password)
-- `PROXY_HOST` / `PROXY_PORT` / `PROXY_USER` / `PROXY_PASS`: **pending** — needs SmartProxy signup
+- `PROXY_HOST` / `PROXY_PORT` / `PROXY_USER` / `PROXY_PASS`: **Adeeb has credentials** — needs to be added to `.env` on DO server (Task 9)
 
 **`.env.example` template (updated in Stage 1 Task 1):**
 ```
@@ -204,9 +220,11 @@ PROXY_PASS=
 - Jina AI Reader fetches full JD text (free, no API key)
 - Result: `WebJobLead[]` — Telegram card only, no Claude tailoring
 
-### NaukriGulf (`src/scrapers/naukrigulf.ts`) — Stub → Re-implement in Stage 1
-- Currently returns `[]` (PerimeterX permanent stub)
-- Stage 1 will attempt full re-implementation with stealthBrowser (40-50% success chance)
+### NaukriGulf (`src/scrapers/naukrigulf.ts`) — Re-implemented, PerimeterX still blocking
+- Full stealth scraper implemented (Task 6 done) — was a permanent stub before
+- Now uses `stealthBrowser`, `homepageFirst`, limits to 3 keywords, 3–6s delays
+- Local self-test: browser launches cleanly, page title loads, but job card DOM not found (PerimeterX blocking)
+- May work with UAE-exit residential proxy on DO server — 40-50% confidence
 - GulfTalent remains permanent stub (Akamai CDN — not worth attempting)
 
 ### Jooble (`src/scrapers/jooble.ts`) — DROPPED
@@ -214,10 +232,19 @@ PROXY_PASS=
 - Reason: inaccurate job timing (24h filter unreliable), stale listings
 - Kept on disk for reference
 
-### Indeed / Bayt — Cloudflare Blocked → Will be revived in Stage 1
-- Files exist, not in `runAllScrapers()`
-- Blocked on DigitalOcean + local test confirmed Cloudflare 403
-- Stage 1 re-enables with stealthBrowser + SmartProxy residential IPs
+### Indeed (`src/scrapers/indeed.ts`) — WIRED, pending DO server confirmation
+- Now imports from `../antidetect/stealthBrowser` (Task 4 done)
+- `createBrowser('ae.indeed.com')` + `homepageFirst` before navigation
+- Single combined OR query (all keywords) — avoids per-keyword request loops
+- Local self-test returned 6 live jobs (residential IP not on blocklist)
+- DO server test with SmartProxy proxy needed to confirm Cloudflare bypass from datacenter IP
+
+### Bayt (`src/scrapers/bayt.ts`) — WIRED, pending DO server confirmation
+- Now imports from `../antidetect/stealthBrowser` (Task 5 done)
+- `createBrowser('www.bayt.com')` + `homepageFirst` before per-keyword loop (runs once, not per keyword)
+- Filters to ≤24h fresh jobs using postedText heuristics
+- Local self-test returned 96 live jobs
+- DO server test with SmartProxy proxy needed to confirm Cloudflare bypass
 
 ---
 
@@ -343,15 +370,11 @@ node_modules\.bin\tsx src\index.ts
 
 ## Open Items (Priority Order)
 
-### Stage 1 — Next Build (plan ready)
-1. **Sign up for SmartProxy** — Adeeb's one required action. smartproxy.com, residential plan ~$28/month. Get `PROXY_USER` + `PROXY_PASS`. Add to `.env` on DO server.
-2. **Execute Stage 1 plan** — `docs/superpowers/plans/2026-05-27-stage1-antidetect-portal-revival.md`
-   - Build `proxyManager.ts` + `stealthBrowser.ts`
-   - Re-enable Indeed, Bayt, NaukriGulf with stealth + proxy
-   - `ecosystem.config.js` for PM2
+### Stage 1 Task 9 — DO Server Deploy (next action)
+1. **Adeeb runs Task 9 on the DO droplet** — add proxy creds to `.env`, pull, build, self-test Indeed + Bayt, restart PM2. See "Task 9" block in Stage 1 section above for exact commands.
 
 ### Stage 2 — After Stage 1 Confirmed Working
-3. **Execute Stage 2 plan** — `docs/superpowers/plans/2026-05-27-stage2-persistent-crawler.md`
+2. **Execute Stage 2 plan** — `docs/superpowers/plans/2026-05-27-stage2-persistent-crawler.md`
    - 90-company seed list, crawl queue, change detection, career page locator
    - Persistent PM2 crawler process
    - Daily discovery engine
