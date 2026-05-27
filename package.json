@@ -18,7 +18,9 @@
     "node-telegram-bot-api": "latest",
     "nodemailer": "latest",
     "playwright": "latest",
+    "playwright-extra": "^4.3.6",
     "puppeteer": "latest",
+    "puppeteer-extra-plugin-stealth": "^2.11.2",
     "rss-parser": "latest"
   },
   "devDependencies": {
