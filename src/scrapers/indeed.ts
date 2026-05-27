@@ -1,7 +1,7 @@
 import { Job } from '../types';
 import { generateFingerprint } from '../dedup';
 import { config } from '../config';
-import { createBrowser, createStealthContext, randomDelay } from './browser';
+import { createBrowser, createStealthContext, randomDelay, homepageFirst } from '../antidetect/stealthBrowser';
 
 function buildSearchUrl(): string {
   // Single OR query across all keywords — avoids triggering Cloudflare on per-keyword loops
@@ -17,12 +17,13 @@ function buildSearchUrl(): string {
 
 export async function scrapeIndeed(): Promise<Job[]> {
   const tag = `[${new Date().toISOString()}] [Indeed]`;
-  const browser = await createBrowser();
+  const browser = await createBrowser('ae.indeed.com');
   const allJobs: Job[] = [];
 
   try {
     const context = await createStealthContext(browser);
     const page = await context.newPage();
+    await homepageFirst(page, 'ae.indeed.com');
 
     console.log(`${tag} Fetching all keywords (combined OR query)...`);
     await page.goto(buildSearchUrl(), { waitUntil: 'domcontentloaded', timeout: 30000 });
