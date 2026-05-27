@@ -8,6 +8,24 @@ function buildSearchUrl(keyword: string): string {
   return `https://www.bayt.com/en/uae/jobs/${slug}-jobs/`;
 }
 
+async function passCloudflareChallenge(page: import('playwright').Page, tag: string): Promise<void> {
+  // Wait up to 12s for "Just a moment..." to auto-complete and redirect
+  const title = await page.title();
+  if (!title.toLowerCase().includes('just a moment') && !title.toLowerCase().includes('checking')) return;
+
+  console.log(`${tag} Cloudflare challenge detected — waiting for it to complete...`);
+  try {
+    await page.waitForFunction(
+      () => !document.title.toLowerCase().includes('just a moment') && !document.title.toLowerCase().includes('checking'),
+      { timeout: 15000 }
+    );
+    await randomDelay(1000, 2000);
+    console.log(`${tag} Cloudflare challenge passed (title: "${await page.title()}")`);
+  } catch {
+    console.log(`${tag} Cloudflare challenge did not complete in time`);
+  }
+}
+
 export async function scrapebayt(): Promise<Job[]> {
   const tag = `[${new Date().toISOString()}] [Bayt]`;
   const browser = await createBrowser('www.bayt.com');
@@ -17,11 +35,13 @@ export async function scrapebayt(): Promise<Job[]> {
     const context = await createStealthContext(browser);
     const page = await context.newPage();
     await homepageFirst(page, 'www.bayt.com');
+    await passCloudflareChallenge(page, tag);
 
     for (const keyword of config.keywords) {
       const url = buildSearchUrl(keyword);
       console.log(`${tag} Fetching "${keyword}"...`);
-      await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
+      await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 45000 });
+      await passCloudflareChallenge(page, tag);
       await randomDelay(2000, 3000);
 
       const hasJobs = await page

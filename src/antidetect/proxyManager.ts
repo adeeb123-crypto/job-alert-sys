@@ -1,16 +1,10 @@
-import * as crypto from 'crypto';
-
 export interface ProxyConfig {
   server: string;
   username: string;
   password: string;
 }
 
-function domainSessionId(domain: string): string {
-  return crypto.createHash('md5').update(domain).digest('hex').slice(0, 8);
-}
-
-export function getProxyConfig(domain?: string): ProxyConfig | null {
+export function getProxyConfig(_domain?: string): ProxyConfig | null {
   const host = process.env.PROXY_HOST;
   const port = process.env.PROXY_PORT;
   const user = process.env.PROXY_USER;
@@ -18,11 +12,10 @@ export function getProxyConfig(domain?: string): ProxyConfig | null {
 
   if (!host || !port || !user || !pass) return null;
 
-  const username = domain ? `${user}-session-${domainSessionId(domain)}` : user;
-
+  // SmartProxy port 10000 is a rotating endpoint — base username only
   return {
     server: `http://${host}:${port}`,
-    username,
+    username: user,
     password: pass,
   };
 }
@@ -47,7 +40,7 @@ if (require.main === module) {
   console.assert(isProxyConfigured() === false, 'FAIL: isProxyConfigured should be false');
   console.log('PASS: returns null when proxy env vars missing');
 
-  // Test 2: returns config with sticky session when vars present
+  // Test 2: returns correct config shape when vars present
   process.env.PROXY_HOST = 'gate.smartproxy.com';
   process.env.PROXY_PORT = '10000';
   process.env.PROXY_USER = 'testuser';
@@ -56,24 +49,18 @@ if (require.main === module) {
   const cfg = getProxyConfig('bayt.com');
   console.assert(cfg !== null, 'FAIL: Should return config when vars set');
   console.assert(cfg!.server === 'http://gate.smartproxy.com:10000', `FAIL: Wrong server: ${cfg!.server}`);
-  console.assert(cfg!.username.startsWith('testuser-session-'), `FAIL: Missing session: ${cfg!.username}`);
+  console.assert(cfg!.username === 'testuser', `FAIL: Username should be base user: ${cfg!.username}`);
   console.assert(cfg!.password === 'testpass', 'FAIL: Wrong password');
-  console.log('PASS: config shape correct with sticky session');
+  console.log('PASS: config shape correct');
 
-  // Test 3: same domain → same session ID (sticky)
-  const cfg2 = getProxyConfig('bayt.com');
-  console.assert(cfg!.username === cfg2!.username, 'FAIL: Same domain must yield same session ID');
-  console.log('PASS: same domain → same session ID');
+  // Test 3: domain argument is ignored (rotating endpoint, no session suffix)
+  const cfg2 = getProxyConfig('indeed.com');
+  console.assert(cfg!.username === cfg2!.username, 'FAIL: Username should be same regardless of domain');
+  console.log('PASS: domain argument ignored — base username used');
 
-  // Test 4: different domains → different session IDs
-  const cfg3 = getProxyConfig('indeed.com');
-  console.assert(cfg!.username !== cfg3!.username, 'FAIL: Different domains must yield different session IDs');
-  console.log('PASS: different domains → different session IDs');
-
-  // Test 5: no domain → username without session suffix
-  const cfg4 = getProxyConfig();
-  console.assert(cfg4!.username === 'testuser', `FAIL: No domain should not append session: ${cfg4!.username}`);
-  console.log('PASS: no domain → plain username');
+  // Test 4: isProxyConfigured returns true
+  console.assert(isProxyConfigured() === true, 'FAIL: isProxyConfigured should be true');
+  console.log('PASS: isProxyConfigured returns true when vars set');
 
   console.log('\nAll proxyManager tests passed.');
 }
