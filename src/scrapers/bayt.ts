@@ -1,7 +1,7 @@
 import { Job } from '../types';
 import { generateFingerprint } from '../dedup';
 import { config } from '../config';
-import { createBrowser, createStealthContext, randomDelay } from './browser';
+import { createBrowser, createStealthContext, randomDelay, homepageFirst } from '../antidetect/stealthBrowser';
 
 function buildSearchUrl(keyword: string): string {
   const slug = keyword.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
@@ -10,12 +10,13 @@ function buildSearchUrl(keyword: string): string {
 
 export async function scrapebayt(): Promise<Job[]> {
   const tag = `[${new Date().toISOString()}] [Bayt]`;
-  const browser = await createBrowser();
+  const browser = await createBrowser('www.bayt.com');
   const allJobs: Job[] = [];
 
   try {
     const context = await createStealthContext(browser);
     const page = await context.newPage();
+    await homepageFirst(page, 'www.bayt.com');
 
     for (const keyword of config.keywords) {
       const url = buildSearchUrl(keyword);
