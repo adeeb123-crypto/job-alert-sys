@@ -1,6 +1,7 @@
 import { Job } from '../types';
 import { scrapeLinkedIn } from './linkedin';
-import { scrapeJooble } from './jooble';
+import { scrapeIndeed } from './indeed';
+import { scrapebayt } from './bayt';
 import { scrapeNaukriGulf } from './naukrigulf';
 import { scrapeGulfTalent } from './gulftalent';
 import { scrapeCompanyPages } from './companyScraper';
@@ -10,7 +11,6 @@ export { scrapeJooble } from './jooble';
 export { scrapeNaukriGulf } from './naukrigulf';
 export { scrapeGulfTalent } from './gulftalent';
 export { scrapeCompanyPages } from './companyScraper';
-// Kept for future scraping engine work — not active in pipeline
 export { scrapeIndeed } from './indeed';
 export { scrapebayt } from './bayt';
 
@@ -19,12 +19,13 @@ export async function runAllScrapers(): Promise<Job[]> {
 
   const results = await Promise.allSettled([
     scrapeLinkedIn(),
-    scrapeJooble(),
+    scrapeIndeed(),
+    scrapebayt(),
     scrapeNaukriGulf(),
     scrapeGulfTalent(),
   ]);
 
-  const labels = ['LinkedIn', 'Jooble', 'NaukriGulf', 'GulfTalent'];
+  const labels = ['LinkedIn', 'Indeed', 'Bayt', 'NaukriGulf', 'GulfTalent'];
   const raw: Job[] = [];
 
   results.forEach((result, i) => {
