@@ -53,7 +53,7 @@ export interface Secrets {
   smtpUser: string;
   smtpPass: string;
   braveSearchApiKey: string | null;
-  joobleApiKey: string;
+  joobleApiKey: string | null;
 }
 
 // A job lead found via Google search on company websites — simpler than Job,

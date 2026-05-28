@@ -69,7 +69,7 @@ export async function scrapeJooble(): Promise<Job[]> {
     try {
       console.log(`${tag} Fetching "${keyword}"...`);
 
-      const response = await postJson(secrets.joobleApiKey, {
+      const response = await postJson(secrets.joobleApiKey ?? '', {
         keywords: keyword,
         location: 'United Arab Emirates',
         datecreated: 'day',

@@ -57,7 +57,7 @@ function loadSecrets(): Secrets {
     smtpUser: requireEnv('SMTP_USER'),
     smtpPass: requireEnv('SMTP_PASS'),
     braveSearchApiKey: process.env['BRAVE_SEARCH_API_KEY'] ?? null,
-    joobleApiKey: requireEnv('JOOBLE_API_KEY'),
+    joobleApiKey: process.env['JOOBLE_API_KEY'] ?? null,
   };
 }
 
