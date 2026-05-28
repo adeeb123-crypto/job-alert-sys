@@ -23,10 +23,15 @@ export async function scrapeIndeed(): Promise<Job[]> {
   try {
     const context = await createStealthContext(browser);
     const page = await context.newPage();
-    await homepageFirst(page, 'ae.indeed.com');
+
+    const hpOk = await homepageFirst(page, 'ae.indeed.com');
+    if (!hpOk) {
+      console.log(`${tag} Homepage warmup failed — aborting (proxy or network issue)`);
+      return allJobs;
+    }
 
     console.log(`${tag} Fetching all keywords (combined OR query)...`);
-    await page.goto(buildSearchUrl(), { waitUntil: 'domcontentloaded', timeout: 30000 });
+    await page.goto(buildSearchUrl(), { waitUntil: 'domcontentloaded', timeout: 60000 });
     await randomDelay(2000, 4000);
 
     const hasJobs = await page

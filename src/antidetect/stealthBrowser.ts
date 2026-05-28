@@ -38,10 +38,15 @@ export async function createStealthContext(browser: Browser): Promise<BrowserCon
   return context;
 }
 
-export async function homepageFirst(page: Page, domain: string): Promise<void> {
+export async function homepageFirst(page: Page, domain: string): Promise<boolean> {
   const homepage = domain.startsWith('http') ? domain : `https://${domain}`;
-  await page.goto(homepage, { waitUntil: 'domcontentloaded', timeout: 15000 }).catch(() => {});
-  await randomDelay(1500, 3000);
+  try {
+    await page.goto(homepage, { waitUntil: 'domcontentloaded', timeout: 30000 });
+    await randomDelay(1500, 3000);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 export function realisticViewport(): { width: number; height: number } {
