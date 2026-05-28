@@ -116,7 +116,7 @@ export async function scrapebayt(): Promise<Job[]> {
       // Drop anything with N > 1 before "day" and anything with "week"/"month"/"year".
       const fresh = cards.filter(c => {
         const t = c.postedText;
-        if (!t) return true; // no date info — let it through, dedup handles repeats
+        if (!t) return false; // no date info — drop rather than risk old jobs
         if (/week|month|year/.test(t)) return false;
         const daysMatch = t.match(/(\d+)\s*day/);
         if (daysMatch && parseInt(daysMatch[1], 10) > 1) return false;
